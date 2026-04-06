@@ -1,0 +1,244 @@
+@model SV22T1020161.Models.Partner.Customer
+@{
+    ViewData["Title"] = "Thanh toán đơn hàng";
+    var cart = ViewBag.Cart as List<SV22T1020161.Shop.Models.CartItem> ?? new List<SV22T1020161.Shop.Models.CartItem>();
+    var total = cart.Sum(c => c.TotalPrice);
+}
+
+<style>
+    .md-shipping-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid var(--md-outline-variant);
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+    .md-shipping-card:hover {
+        background: var(--md-surface-container-low);
+    }
+    .md-shipping-card.active {
+        background: var(--md-primary-container) !important;
+        border-color: var(--md-primary) !important;
+    }
+    .md-shipping-card input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--md-primary);
+    }
+</style>
+
+<div class="animate-in">
+    <!-- Page Header -->
+    <div class="page-header mb-5">
+        <a href="~/Cart" class="back-btn">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <div>
+            <h1 style="font-size:1.75rem;font-weight:800;">Thanh toán</h1>
+            <p class="text-muted-md mb-0" style="font-size:0.875rem;">Vui lòng điền thông tin để đặt hàng</p>
+        </div>
+    </div>
+
+    <form action="~/Cart/Confirm" method="post" class="row g-4">
+        <!-- Left: Shipping & Method -->
+        <div class="col-lg-7 d-flex flex-column gap-4">
+
+            <!-- 1. Shipping Address -->
+            <div class="md-card">
+                <div class="md-card-header">
+                    <div class="checkout-step-num active">1</div>
+                    <h3 style="font-size:1rem;font-weight:700;margin:0;">Thông tin nhận hàng</h3>
+                </div>
+                <div class="md-card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="md-form-group mb-0">
+                                <label class="md-label">Người nhận <span style="color:var(--md-error);">*</span></label>
+                                <input type="text" name="RecipientName" value="@Model.CustomerName" required class="md-input" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="md-form-group mb-0">
+                                <label class="md-label">Số điện thoại <span style="color:var(--md-error);">*</span></label>
+                                <input type="tel" name="RecipientPhone" value="@Model.Phone" required class="md-input" />
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="md-form-group mb-0">
+                                <label class="md-label">Địa chỉ cụ thể <span style="color:var(--md-error);">*</span></label>
+                                <input type="text" name="DeliveryAddress" value="@Model.Address" required class="md-input" placeholder="Số nhà, đường, phường/xã..." />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="md-form-group mb-0">
+                                <label class="md-label">Tỉnh / Thành phố <span style="color:var(--md-error);">*</span></label>
+                                <select name="DeliveryProvince" required class="md-select">
+                                    <option value="">-- Chọn Tỉnh/Thành --</option>
+                                    @foreach (var p in await SV22T1020161.BusinessLayers.DictionaryDataService.ListProvincesAsync())
+                                    {
+                                        @if (p.ProvinceName == Model.Province) {
+                                            <option value="@p.ProvinceName" selected>@p.ProvinceName</option>
+                                        } else {
+                                            <option value="@p.ProvinceName">@p.ProvinceName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Shipping Method -->
+            <div class="md-card">
+                <div class="md-card-header">
+                    <div class="checkout-step-num active">2</div>
+                    <h3 style="font-size:1rem;font-weight:700;margin:0;">Đơn vị vận chuyển</h3>
+                </div>
+                <div class="md-card-body d-flex flex-column gap-3">
+                    @{
+                        var shippers = (ViewBag.Shippers as PagedResult<Shipper>)?.DataItems ?? new List<Shipper>();
+                        if (shippers.Count == 0)
+                        {
+                            <div class="payment-cod-card">
+                                <div>
+                                    <strong>Giao hàng tiêu chuẩn</strong>
+                                    <p class="mb-0 text-muted-md" style="font-size:0.8125rem;">Giao hàng nhanh chóng</p>
+                                </div>
+                                <span class="ms-auto md-badge md-badge-primary">Miễn phí</span>
+                            </div>
+                            <input type="hidden" name="ShipperID" value="0" />
+                        }
+                        else
+                        {
+                            var first = true;
+                            @foreach (var s in shippers)
+                            {
+                                <label class="md-shipping-card @(first ? "active" : "")">
+                                    <input type="radio" name="ShipperID" value="@s.ShipperID" required @(first ? "checked" : "") onclick="updateActiveShipper(this)" />
+                                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                        <div style="width:40px;height:40px;border-radius:var(--md-radius-full);background:var(--md-surface-container-high);display:flex;align-items:center;justify-content:center;color:var(--md-primary);">
+                                            <i class="bi bi-truck"></i>
+                                        </div>
+                                        <div>
+                                            <strong style="font-size:0.9375rem;">@s.ShipperName</strong>
+                                            <p class="mb-0 text-muted-md" style="font-size:0.8125rem;">@s.Phone</p>
+                                        </div>
+                                    </div>
+                                    <span class="ms-auto md-badge md-badge-success">Miễn phí</span>
+                                </label>
+                                first = false;
+                            }
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- 3. Payment Method (Mock) -->
+            <div class="md-card">
+                <div class="md-card-header">
+                    <div class="checkout-step-num active">3</div>
+                    <h3 style="font-size:1rem;font-weight:700;margin:0;">Phương thức thanh toán</h3>
+                </div>
+                <div class="md-card-body">
+                    <div class="payment-cod-card" style="background: var(--md-primary-container); border: 1px solid var(--md-primary); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;">
+                        <div class="payment-cod-icon" style="width:40px;height:40px;border-radius:var(--md-radius-full);background:var(--md-primary);display:flex;align-items:center;justify-content:center;color:#ffffff;flex-shrink:0;">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong style="font-size:0.9375rem; color: var(--md-on-primary-container);">Thanh toán khi nhận hàng (COD)</strong>
+                            <p class="mb-0 text-muted-md" style="font-size:0.8125rem;">Thanh toán bằng tiền mặt khi shipper giao hàng đến.</p>
+                        </div>
+                        <i class="bi bi-check-circle-fill ms-auto" style="color:var(--md-primary);font-size:1.5rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Order Review -->
+        <div class="col-lg-5">
+            <div class="md-summary-card sticky-top" style="top:90px;">
+                <h3 style="font-size:1rem;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                    <i class="bi bi-bag-check" style="color:var(--md-primary);"></i>
+                    Tóm tắt đơn hàng
+                </h3>
+
+                <!-- Items List -->
+                <div class="d-flex flex-column gap-3 mb-4" style="max-height:280px;overflow-y:auto;padding-right:8px;" class="scrollbar-thin">
+                    @foreach (var item in cart)
+                    {
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="width:56px;height:56px;border-radius:var(--md-radius-sm);overflow:hidden;background:var(--md-surface-container-low);flex-shrink:0;">
+                                <img src="@(string.IsNullOrEmpty(item.Photo) ? "https://placehold.co/100x100?text=NP" : (item.Photo.StartsWith("http") ? item.Photo : $"/images/products/{item.Photo}"))"
+                                     style="width:100%;height:100%;object-fit:cover;" />
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h4 style="font-size:0.875rem;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@item.ProductName</h4>
+                                <p class="text-muted-md mb-0" style="font-size:0.8125rem;">SL: @item.Quantity x @item.Price.ToString("N0") đ</p>
+                            </div>
+                            <div style="font-weight:600;font-size:0.875rem;white-space:nowrap;">@item.TotalPrice.ToString("N0") đ</div>
+                        </div>
+                    }
+                </div>
+
+                <hr class="md-divider">
+
+                <div class="d-flex flex-column gap-2 mb-4" style="font-size:0.9375rem;">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted-md">Tổng tiền hàng</span>
+                        <span style="font-weight:600;">@total.ToString("N0") đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted-md">Phí vận chuyển</span>
+                        <span style="color:var(--md-primary);font-weight:600;">Miễn phí</span>
+                    </div>
+                </div>
+
+                <hr class="md-divider">
+
+                <div class="d-flex justify-content-between align-items-end mb-5">
+                    <span style="font-weight:600;font-size:0.875rem;">Tổng thanh toán:</span>
+                    <div class="text-end">
+                        <span class="cart-total-display">@total.ToString("N0")</span>
+                        <span class="text-muted-md" style="font-size:0.875rem;"> đ</span>
+                    </div>
+                </div>
+
+                <!-- Note -->
+                <div class="md-form-group mb-4">
+                    <label class="md-label">Ghi chú đơn hàng (tùy chọn)</label>
+                    <textarea name="Note" rows="2" placeholder="Ghi chú cho shipper hoặc cửa hàng..."
+                              class="md-input" style="resize:none;"></textarea>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit"
+                        class="md-btn md-btn-primary w-100"
+                        style="padding:14px;font-size:1rem;font-weight:800;box-shadow:0 4px 12px rgba(103,80,164,.35);">
+                    <i class="bi bi-bag-check-fill"></i>
+                    XÁC NHẬN ĐẶT HÀNG
+                </button>
+                <p class="text-center text-muted-md mt-3" style="font-size:0.75rem;">Bằng cách nhấn nút, bạn đồng ý với các điều khoản mua hàng của chúng tôi.</p>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function updateActiveShipper(input) {
+            // Remove active class from all shipping cards
+            document.querySelectorAll('.md-shipping-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            // Add active class to the parent label of the checked radio
+            if (input.checked) {
+                input.closest('.md-shipping-card').classList.add('active');
+            }
+        }
+    </script>
+}

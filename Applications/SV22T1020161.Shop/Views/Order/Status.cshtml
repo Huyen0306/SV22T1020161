@@ -1,0 +1,199 @@
+@model SV22T1020161.Models.Sales.OrderViewInfo
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.OrderID}";
+    var details = ViewBag.Details as List<SV22T1020161.Models.Sales.OrderDetailViewInfo> ?? new List<SV22T1020161.Models.Sales.OrderDetailViewInfo>();
+    decimal total = details.Sum(d => d.TotalPrice);
+
+    var steps = new[] {
+        new { Name = "Đã đặt", Icon = "bi-bag-check", Time = (DateTime?)Model.OrderTime, Done = true, Active = false },
+        new { Name = "Đã duyệt", Icon = "bi-clipboard-check", Time = Model.AcceptTime, Done = Model.AcceptTime.HasValue, Active = Model.AcceptTime.HasValue && !Model.ShippedTime.HasValue },
+        new { Name = "Đang giao", Icon = "bi-truck", Time = Model.ShippedTime, Done = Model.ShippedTime.HasValue, Active = Model.ShippedTime.HasValue && !Model.FinishedTime.HasValue },
+        new { Name = "Hoàn tất", Icon = "bi-check2-circle", Time = Model.FinishedTime, Done = Model.FinishedTime.HasValue && Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Completed, Active = false }
+    };
+
+    if (Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Cancelled || Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Rejected)
+    {
+        steps = new[] {
+            new { Name = "Đã đặt", Icon = "bi-bag-check", Time = (DateTime?)Model.OrderTime, Done = true, Active = false },
+            new { Name = "Đã duyệt", Icon = "bi-clipboard-check", Time = Model.AcceptTime, Done = Model.AcceptTime.HasValue, Active = false },
+            new { Name = Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Cancelled ? "Đã hủy" : "Từ chối", Icon = "bi-x-circle", Time = Model.FinishedTime, Done = true, Active = false }
+        };
+    }
+}
+
+<div class="animate-in">
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3" style="margin-bottom: 32px;">
+        <div class="d-flex align-items-center gap-3">
+            <a href="~/Order/History" class="back-btn">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h1 style="font-size:1.75rem;font-weight:800;">Đơn hàng #@Model.OrderID</h1>
+                <p class="text-muted-md mb-0" style="font-size:0.875rem;">
+                    Đặt ngày @Model.OrderTime.ToString("dd/MM/yyyy lúc HH:mm")
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="md-card" style="margin-bottom: 32px; background: #ffffff !important;">
+        <div class="md-card-body">
+            <div class="md-timeline">
+                @foreach (var step in steps)
+                {
+                    <div class="md-timeline-step @(step.Done ? "done" : "") @(step.Active ? "active" : "")">
+                        <div class="md-timeline-icon">
+                            <i class="bi @step.Icon"></i>
+                        </div>
+                        <div class="md-timeline-label">@step.Name</div>
+                        @if (step.Done && step.Time.HasValue)
+                        {
+                            <div class="md-timeline-time">@step.Time.Value.ToString("HH:mm dd/MM")</div>
+                        }
+                        else
+                        {
+                            <div class="md-timeline-time" style="color:var(--md-outline);">Chưa tới</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Order Items Table -->
+        <div class="col-lg-8">
+            <div class="md-card" style="background: #ffffff !important;">
+                <div class="md-card-header">
+                    <div class="md-card-icon" style="background:var(--md-primary-container);color:var(--md-primary);">
+                        <i class="bi bi-bag"></i>
+                    </div>
+                    <h3 style="font-size:1rem;font-weight:700;margin:0;">Danh sách mặt hàng</h3>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="md-table" style="margin:0;">
+                        <thead style="background:#ffffff; border-bottom: 1px solid var(--md-outline-variant);">
+                            <tr>
+                                <th style="padding:16px 20px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--md-on-surface-variant); background:#ffffff;">Sản phẩm</th>
+                                <th class="text-center" style="padding:16px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--md-on-surface-variant); background:#ffffff;">Số lượng</th>
+                                <th class="text-center" style="padding:16px 12px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--md-on-surface-variant); background:#ffffff;">Đơn giá</th>
+                                <th class="text-end" style="padding:16px 20px; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--md-on-surface-variant); background:#ffffff;">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rowIndex = 0; }
+                            @foreach (var d in details)
+                            {
+                                rowIndex++;
+                                string borderStyle = (rowIndex == details.Count) ? "border-bottom:none;" : "border-bottom:1px dashed var(--md-outline-variant);";
+                                <tr>
+                                    <td style="padding:20px 20px; border-top:none; @borderStyle">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div style="width:64px;height:64px;border-radius:var(--md-radius-sm);overflow:hidden;background:#ffffff;flex-shrink:0;border:1px solid var(--md-outline-variant);">
+                                                @{
+                                                    string photoUrl = "https://placehold.co/100x100/e8def8/6750a4?text=NP";
+                                                    if (!string.IsNullOrEmpty(d.Photo))
+                                                    {
+                                                        photoUrl = d.Photo.StartsWith("http") ? d.Photo : Url.Content("~/images/products/" + d.Photo);
+                                                    }
+                                                }
+                                                <img src="@photoUrl"
+                                                     style="width:100%;height:100%;object-fit:cover;" />
+                                            </div>
+                                            <div>
+                                                <h4 style="font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--md-on-surface);">@d.ProductName</h4>
+                                                <p class="text-muted-md mb-0" style="font-size:0.875rem;">ĐVT: @d.Unit</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center" style="padding:20px 12px;font-weight:600;font-size:1rem; border-top:none; @borderStyle">@d.Quantity</td>
+                                    <td class="text-center" style="padding:20px 12px;font-weight:600;font-size:1rem; border-top:none; @borderStyle">
+                                        @d.SalePrice.ToString("N0") <span style="font-size:0.8125rem;">đ</span>
+                                    </td>
+                                    <td class="text-end" style="padding:20px 20px;font-weight:800;font-size:1.125rem;color:var(--md-error); border-top:none; @borderStyle">
+                                        @d.TotalPrice.ToString("N0") <span style="font-size:0.8125rem;">đ</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-4">
+            <div class="d-flex flex-column gap-4">
+
+                <!-- Delivery Info -->
+                <div class="md-delivery-card">
+                    <h6 style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;opacity:0.7;margin-bottom:16px;">Địa chỉ giao hàng</h6>
+                    <div>
+                        <p style="font-weight:700;font-size:1.0625rem;margin-bottom:4px;">@Model.DeliveryAddress</p>
+                        <p style="opacity:0.85;font-size:0.875rem;margin:0;">@Model.DeliveryProvince</p>
+                    </div>
+                </div>
+
+                <!-- Payment Summary -->
+                <div class="md-card" style="background: #ffffff !important;">
+                    <div class="md-card-header">
+                        <div class="md-card-icon" style="background:var(--md-primary-container);color:var(--md-primary);">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <h3 style="font-size:1rem;font-weight:700;margin:0;">Tóm tắt thanh toán</h3>
+                    </div>
+                    <div class="md-card-body">
+                        <div class="d-flex flex-column gap-3 mb-4" style="font-size:0.9375rem;">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted-md">Tạm tính</span>
+                                <span style="font-weight:600;">@total.ToString("N0") đ</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted-md">Vận chuyển</span>
+                                <span style="color:var(--md-primary);font-weight:600;">Miễn phí</span>
+                            </div>
+                        </div>
+                        <hr class="md-divider">
+                        <div class="d-flex justify-content-between align-items-end mb-4">
+                            <span style="font-weight:700;font-size:0.875rem;">Tổng thanh toán:</span>
+                            <div class="text-end">
+                                <p style="font-size:1.75rem;font-weight:800;color:var(--md-error);letter-spacing:-0.02em;margin:0;line-height:1;">
+                                    @total.ToString("N0") <span style="font-size:0.875rem;font-weight:400;color:var(--md-on-surface-variant);">đ</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        @if (Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.New || Model.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Accepted)
+                        {
+                            <form id="formCancelOrder" action="/Order/Cancel/@Model.OrderID" method="post">
+                                <button type="button"
+                                        class="md-btn w-100"
+                                        style="border:2px solid var(--md-error);color:var(--md-error);font-weight:600;padding:10px;"
+                                        onclick="cancelOrderConfirm()">
+                                    <i class="bi bi-x-circle"></i> Hủy đơn hàng
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function cancelOrderConfirm() {
+            showConfirmModal({
+                title: 'Hủy đơn hàng',
+                message: 'Bạn có chắc muốn hủy đơn hàng này? Hành động này không thể hoàn tác.',
+                confirmText: 'Hủy đơn',
+                cancelText: 'Giữ đơn'
+            }).then(function (ok) {
+                if (ok) document.getElementById('formCancelOrder').submit();
+            });
+        }
+    </script>
+}

@@ -1,0 +1,317 @@
+@model PagedResult<OrderViewInfo>
+@{
+    ViewData["Title"] = "Lịch sử mua hàng";
+    int currentStatus = ViewBag.Status ?? 0;
+}
+
+<div class="pt-4 animate-in">
+    <!-- Page Header (Title only) -->
+    <div class="mb-4">
+        <div class="page-header" style="margin-bottom: 0;">
+            <div>
+                <h1 style="font-size:1.75rem;font-weight:800;margin-bottom: 2px;">Đơn hàng của tôi</h1>
+                <p class="text-muted-md mb-0" style="font-size:0.875rem;">Theo dõi và quản lý các đơn hàng của bạn</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar Card: Status Tabs & Search -->
+    <div class="md-card mb-4">
+        <div class="md-card-body py-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-4">
+                <!-- Status Tabs -->
+                <form action="~/Order/History" method="get" id="filterForm">
+                    <input type="hidden" name="status" id="statusInput" value="@currentStatus" />
+                    <input type="hidden" name="searchValue" value="@ViewBag.SearchValue" />
+                    <div style="background: var(--md-surface-container-high); border-radius: 100px; padding: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                        @{
+                            var statusList = new[] {
+                                (0, "Tất cả"),
+                                (1, "Chờ duyệt"),
+                                (3, "Đang giao"),
+                                (4, "Hoàn tất"),
+                                (-1, "Đã hủy")
+                            };
+
+                            foreach (var (status, label) in statusList)
+                            {
+                                bool isActive = currentStatus == status;
+                                string activeStyles = isActive 
+                                    ? "background: #ffffff; color: var(--md-primary);" 
+                                    : "color: var(--md-on-surface-variant);";
+
+                                <a href="javascript:void(0)" 
+                                   onclick="filterByStatus(@status)"
+                                   onmouseover="if(!@isActive.ToString().ToLower()) this.style.background = 'rgba(0,0,0,0.04)'"
+                                   onmouseout="if(!@isActive.ToString().ToLower()) this.style.background = 'transparent'"
+                                   style="text-decoration:none; padding: 8px 24px; border-radius: 100px; font-weight: 700; font-size: 0.875rem; white-space: nowrap; transition: all 0.2s ease; @activeStyles">
+                                    @label
+                                </a>
+                            }
+                        }
+                    </div>
+                </form>
+
+                <!-- Search inside card -->
+                <div class="md-navbar border-0 pb-0 mb-0" style="width:100%; max-width:450px; background: transparent;">
+                    <form action="~/Order/History" method="get" style="width: 100%;">
+                        <input type="hidden" name="status" value="@currentStatus" />
+                        <div class="search-input-group d-flex align-items-center gap-0">
+                            <div class="search-input-wrap flex-grow-1">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="search" name="searchValue" class="search-input-md" 
+                                       placeholder="Tìm mã đơn hoặc tên hàng..." 
+                                       value="@ViewBag.SearchValue">
+                            </div>
+                            <button type="submit" class="search-btn-md">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order List -->
+    <div class="d-flex flex-column gap-3">
+        @if (Model.DataItems.Count == 0)
+        {
+            <div class="md-empty-state">
+                <div class="md-empty-icon">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <h3 style="font-size:1.25rem;font-weight:700;">Chưa có đơn hàng nào</h3>
+                <p class="text-muted-md mt-2">Bạn chưa có đơn hàng nào trong mục này.</p>
+                <a href="~/Product" class="md-btn md-btn-primary mt-6">
+                    <i class="bi bi-bag"></i> Tiếp tục mua sắm
+                </a>
+            </div>
+        }
+
+        @foreach (var order in Model.DataItems)
+        {
+            string statusBarColor = order.Status switch
+            {
+                SV22T1020161.Models.Sales.OrderStatusEnum.New      => "#607D8B",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Accepted => "#03A9F4",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Shipping  => "#6750A4",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Completed  => "#4CAF50",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Cancelled => "#B3261E",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Rejected  => "#FF9800",
+                _ => "#9E9E9E"
+            };
+
+            string statusBadgeClass = order.Status switch
+            {
+                SV22T1020161.Models.Sales.OrderStatusEnum.New      => "md-badge-neutral",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Accepted => "md-badge-info",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Shipping  => "md-badge-primary",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Completed => "md-badge-success",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Cancelled => "md-badge-danger",
+                SV22T1020161.Models.Sales.OrderStatusEnum.Rejected  => "md-badge-warning",
+                _ => "md-badge-neutral"
+            };
+
+            <!-- Order Card -->
+            <div class="md-order-card">
+                <div class="status-bar" style="background:@statusBarColor;"></div>
+                <div class="p-4">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+                        <!-- Left info -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+                                <span class="md-badge @statusBadgeClass">@order.StatusDescription</span>
+                                <span style="font-size:0.8125rem;color:var(--md-on-surface-variant);font-weight:500;">
+                                    Mã đơn #<strong>@order.OrderID</strong>
+                                </span>
+                                <span style="font-size:0.8125rem;color:var(--md-on-surface-variant);">
+                                    &bull; Đặt ngày @order.OrderTime.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </div>
+                            <!-- Products in this order (Now on TOP) -->
+                            @{
+                                var details = (ViewBag.OrderDetails as Dictionary<int, List<OrderDetailViewInfo>>);
+                                if (details != null && details.ContainsKey(order.OrderID))
+                                {
+                                    var items = details[order.OrderID];
+                                    <div class="d-flex flex-column gap-3 mb-4">
+                                        @foreach (var item in items)
+                                        {
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div style="width:64px; height:64px; border-radius:12px; overflow:hidden; background:var(--md-surface-container-low); border: 1px solid var(--md-outline-variant); flex-shrink:0;">
+                                                    <img src="@(string.IsNullOrEmpty(item.Photo) ? "https://placehold.co/64x64/e8def8/6750a4?text=NP" : (item.Photo.StartsWith("http") ? item.Photo : $"/images/products/{item.Photo}"))" 
+                                                         alt="@item.ProductName" style="width:100%; height:100%; object-fit:cover;" />
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div style="font-size:1rem; font-weight:700; color:var(--md-on-surface); line-height:1.2; margin-bottom:4px;">@item.ProductName</div>
+                                                    <div style="font-size:0.8125rem; color:var(--md-on-surface-variant); font-weight:500;">
+                                                        <span class="md-badge md-badge-neutral" style="font-size:0.7rem; padding:2px 8px;">@item.Unit</span>
+                                                        <span class="mx-1">&bull;</span>
+                                                        Số lượng: <strong>@item.Quantity</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+
+                        </div>
+
+                        <!-- Right actions (Total Price) -->
+                        <div class="d-flex flex-column align-items-end" style="min-width:200px;">
+                            <div class="text-end">
+                                <p style="font-size:0.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--md-on-surface-variant);margin-bottom:4px;">Tổng thanh toán</p>
+                                <p style="font-size:1.5rem;font-weight:800;color:var(--md-on-surface);letter-spacing:-0.02em;line-height:1;margin:0;">
+                                    @order.TotalAmount.ToString("N0") <span style="font-size:0.75rem;font-weight:400;color:var(--md-on-surface-variant);">đ</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full-width Dashed Line -->
+                    <div style="border-top:1px dashed var(--md-outline-variant); width:100%; margin: 16px 0;"></div>
+
+                    <!-- Bottom Info & Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <!-- Delivery info -->
+                        <div class="flex-grow-1 mr-3">
+                            <h4 style="font-size:0.875rem; font-weight:600; color:var(--md-on-surface-variant); margin-bottom:0; display:flex; align-items:center; gap:8px;">
+                                <i class="bi bi-geo-alt" style="color:var(--md-primary);"></i>
+                                Giao đến: <span style="font-weight:500; color:var(--md-on-surface);">@order.DeliveryAddress</span>
+                            </h4>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 align-items-center flex-shrink-0">
+                            <a href="~/Order/Reorder/@order.OrderID"
+                               class="md-btn md-btn-secondary"
+                               style="font-size:0.875rem; font-weight:600; padding:10px 24px; min-width:120px; border: 1px solid var(--md-outline-variant);"
+                               title="Mua lại">
+                                <i class="bi bi-arrow-repeat"></i> Mua lại
+                            </a>
+                            <a href="~/Order/Status/@order.OrderID"
+                               class="md-btn md-btn-primary"
+                               style="font-size:0.875rem; font-weight:600; padding:10px 24px; min-width:140px;">
+                                <i class="bi @(order.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Shipping ? "bi-geo-alt" : "bi-eye")"></i>
+                                @(order.Status == SV22T1020161.Models.Sales.OrderStatusEnum.Shipping ? "Theo dõi đơn" : "Chi tiết")
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.PageCount >= 1)
+    {
+        int windowSize = 7;
+        int half = windowSize / 2;
+        int winStart = Model.Page - half;
+        int winEnd = Model.Page + half;
+        if (winStart < 1)
+        {
+            winStart = 1;
+            winEnd = Math.Min(windowSize, Model.PageCount);
+        }
+        if (winEnd > Model.PageCount)
+        {
+            winEnd = Model.PageCount;
+            winStart = Math.Max(1, Model.PageCount - windowSize + 1);
+        }
+
+        bool showLead1 = winStart > 1;
+        bool showLeadEllipsis = winStart > 2;
+        bool showTrailEllipsis = winEnd < Model.PageCount - 1;
+        bool showLast = winEnd < Model.PageCount;
+
+        string BuildUrl(int p) => $"/Order/History?status={currentStatus}&page={p}&searchValue={ViewBag.SearchValue}";
+
+        <div class="d-flex justify-content-center mt-5 pt-4" style="border-top:1px solid var(--md-outline-variant);">
+            <ul class="md-pagination mb-0 justify-content-center" style="min-height:44px; display:flex; gap:4px;">
+                <li class="page-item @(Model.Page <= 1 ? "disabled" : null)">
+                    @if (Model.Page > 1)
+                    {
+                        <a href="@BuildUrl(Model.Page - 1)" class="page-link" aria-label="Trang trước">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="page-link" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
+                    }
+                </li>
+
+                @if (showLead1)
+                {
+                    <li class="page-item">
+                        <a href="@BuildUrl(1)" class="page-link">1</a>
+                    </li>
+                }
+                
+                @if (showLeadEllipsis)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                }
+
+                @for (int i = 0; i < windowSize; i++)
+                {
+                    int p = winStart + i;
+                    if (p <= winEnd && p <= Model.PageCount && p >= 1)
+                    {
+                        if (p == Model.Page)
+                        {
+                            <li class="page-item active"><span class="page-link">@p</span></li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a href="@BuildUrl(p)" class="page-link">@p</a>
+                            </li>
+                        }
+                    }
+                }
+
+                @if (showTrailEllipsis)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                }
+                
+                @if (showLast)
+                {
+                    <li class="page-item">
+                        <a href="@BuildUrl(Model.PageCount)" class="page-link">@Model.PageCount</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.Page >= Model.PageCount ? "disabled" : null)">
+                    @if (Model.Page < Model.PageCount)
+                    {
+                        <a href="@BuildUrl(Model.Page + 1)" class="page-link" aria-label="Trang sau">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="page-link" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                    }
+                </li>
+            </ul>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterByStatus(status) {
+            document.getElementById('statusInput').value = status;
+            document.getElementById('filterForm').submit();
+        }
+    </script>
+}

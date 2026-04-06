@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+    var returnUrl = Context.Request.Query["returnUrl"].ToString();
+}
+
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SV22T1020161.Shop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/material-dashboard.css" />
+</head>
+<body style="background-color:var(--md-surface-container-low);min-height:100vh;display:flex;align-items:center;">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+
+                <div class="md-auth-card">
+                    <!-- Brand -->
+                    <div class="text-center mb-5">
+                        <a href="/" class="brand-logo justify-content-center">
+                            SV22T1020161<span style="color:var(--md-primary);">.</span>Shop
+                        </a>
+                        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">Chào mừng trở lại</h1>
+                        <p class="text-muted-md" style="font-size:0.875rem;">Vui lòng đăng nhập để tiếp tục mua sắm</p>
+                    </div>
+
+                    <!-- Error Alert -->
+                    @if (ViewData.ModelState.ErrorCount > 0)
+                    {
+                        <div class="md-alert md-alert-error mb-4">
+                            <i class="bi bi-exclamation-triangle-fill" style="font-size:1.125rem;"></i>
+                            <div>
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <p style="margin:0;font-size:0.875rem;font-weight:500;">@error.ErrorMessage</p>
+                                }
+                            </div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form id="loginForm" action="~/Account/Login" method="post" class="d-flex flex-column gap-4">
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                        <!-- Email -->
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Email <span style="color:var(--md-error);">*</span></span>
+                                <span class="md-error-message" id="error-email"></span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-envelope input-icon"></i>
+                                <input type="email" id="emailField" name="email" placeholder="example@gmail.com" autofocus
+                                       value="@ViewData["Email"]" class="md-input" />
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Mật khẩu <span style="color:var(--md-error);">*</span></span>
+                                <span class="md-error-message" id="error-password"></span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-lock input-icon"></i>
+                                <input type="password" id="passwordField" name="password" placeholder="Nhập mật khẩu" class="md-input" />
+                            </div>
+                        </div>
+
+
+                        <!-- Submit -->
+                        <button type="submit" class="md-btn md-btn-primary" style="padding:12px;font-size:1rem;font-weight:700;box-shadow:0 4px 12px rgba(103,80,164,.35);">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Đăng nhập
+                        </button>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="d-flex align-items-center gap-3 my-4">
+                        <div style="flex:1;height:1px;background:var(--md-outline-variant);"></div>
+                        <span style="font-size:0.75rem;font-weight:600;color:var(--md-on-surface-variant);text-transform:uppercase;letter-spacing:0.05em;">Hoặc</span>
+                        <div style="flex:1;height:1px;background:var(--md-outline-variant);"></div>
+                    </div>
+
+                    <!-- Register Link -->
+                    <div class="text-center d-flex flex-column gap-2">
+                        <p class="text-muted-md mb-0" style="font-size:0.875rem;">
+                            Chưa có tài khoản?
+                            <a href="~/Account/Register?returnUrl=@returnUrl" style="font-weight:600;">Tạo tài khoản mới</a>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            let hasError = false;
+            const showError = (id, msg) => {
+                const errSpan = document.getElementById('error-' + id);
+                const input = document.getElementById(id + 'Field');
+                if (errSpan) errSpan.textContent = msg;
+                if (input) input.classList.add('is-invalid');
+                hasError = true;
+            };
+            const clearError = (id) => {
+                const errSpan = document.getElementById('error-' + id);
+                const input = document.getElementById(id + 'Field');
+                if (errSpan) errSpan.textContent = '';
+                if (input) input.classList.remove('is-invalid');
+            };
+
+            ['email', 'password'].forEach(clearError);
+
+            const email = document.getElementById('emailField').value.trim();
+            const pass = document.getElementById('passwordField').value;
+
+            if (!email) showError('email', 'Vui lòng nhập Email.');
+            else if (!email.includes('@@') || !email.includes('.')) showError('email', 'Email không hợp lệ.');
+
+            if (!pass) showError('password', 'Vui lòng nhập mật khẩu.');
+
+            if (hasError) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

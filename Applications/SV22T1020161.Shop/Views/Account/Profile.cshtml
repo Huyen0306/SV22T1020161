@@ -1,0 +1,378 @@
+@model SV22T1020161.Models.Partner.Customer
+@{
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<div class="animate-in">
+    <!-- Page Header -->
+    <div class="page-header mb-5">
+        <div>
+            <h1 style="font-size:1.75rem;font-weight:800;">Tài khoản của tôi</h1>
+            <p class="text-muted-md mb-0" style="font-size:0.875rem;">Quản lý thông tin cá nhân và bảo mật</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="md-profile-nav" style="background: #ffffff !important; border: none !important; border-radius: 16px; overflow: hidden; box-shadow: none !important; color: var(--md-on-surface);">
+                <div class="nav-header" style="padding: 24px; border-bottom: 1px solid var(--md-outline-variant); background: #ffffff !important;">
+                    <div style="width:56px;height:56px;border-radius:var(--md-radius-full);background:linear-gradient(135deg,var(--md-primary),var(--md-tertiary));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.25rem;flex-shrink:0;margin-bottom:12px;">
+                        @(Model?.CustomerName?.Length > 0 ? Model.CustomerName.Substring(0, 1).ToUpper() : "U")
+                    </div>
+                    <div>
+                        <h4 style="font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--md-on-surface);">@(Model?.CustomerName ?? "Người dùng")</h4>
+                        <p style="font-size:0.875rem;color:var(--md-on-surface-variant);margin:0;">@(Model?.Email)</p>
+                    </div>
+                </div>
+                <nav class="nav flex-column" style="padding: 12px;">
+                    <style>
+                        .profile-nav-btn {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 12px 16px;
+                            border-radius: 12px;
+                            color: var(--md-on-surface-variant);
+                            font-weight: 500;
+                            text-decoration: none;
+                            transition: all 0.2s ease;
+                            margin-bottom: 4px;
+                        }
+                        .profile-nav-btn:hover {
+                            background: var(--md-surface-container-low);
+                            color: var(--md-primary);
+                        }
+                        .profile-nav-btn i {
+                            font-size: 1.25rem;
+                        }
+                        .profile-nav-btn.logout-btn:hover {
+                            background: var(--md-error-container);
+                            color: var(--md-error);
+                        }
+                    </style>
+                    <a href="#info" class="profile-nav-btn">
+                        <i class="bi bi-person"></i> Thông tin cá nhân
+                    </a>
+                    <a href="#password" class="profile-nav-btn">
+                        <i class="bi bi-shield-lock"></i> Đổi mật khẩu
+                    </a>
+                    <div style="height:1px;background:var(--md-outline-variant);margin:12px 16px;"></div>
+                    <a href="~/Order/History" class="profile-nav-btn">
+                        <i class="bi bi-receipt"></i> Đơn hàng của tôi
+                    </a>
+                    <a href="~/Account/Logout" class="profile-nav-btn logout-btn" style="color:var(--md-error);">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-9 d-flex flex-column gap-4">
+
+            <!-- Profile Info Section -->
+            <section id="info" class="md-card">
+                <div class="md-card-header">
+                    <div class="md-card-icon" style="background:var(--md-primary-container);color:var(--md-primary);">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h3 style="font-size:1rem;font-weight:700;margin:0;">Thông tin cá nhân</h3>
+                        <p class="text-muted-md mb-0" style="font-size:0.8125rem;">Cập nhật thông tin chi tiết và địa chỉ liên lạc của bạn.</p>
+                    </div>
+                    <button type="submit" form="profileForm" class="md-btn md-btn-primary">
+                        <i class="bi bi-check2-circle"></i> Lưu thay đổi
+                    </button>
+                </div>
+                <div class="md-card-body">
+                    <form id="profileForm" action="~/Account/UpdateProfile" method="post" class="d-flex flex-column gap-4">
+                        <div class="row g-3">
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Họ và tên</span>
+                                        <span class="md-error-message" id="error-CustomerName"></span>
+                                    </label>
+                                    <input type="text" id="CustomerName" name="CustomerName" value="@Model?.CustomerName" class="md-input" />
+                                </div>
+                            </div>
+                            <!-- Email (Read-only) -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">Email (Không thể thay đổi)</label>
+                                    <input type="email" value="@Model?.Email" disabled class="md-input" style="background:var(--md-surface-variant);cursor:not-allowed;" />
+                                </div>
+                            </div>
+                            <!-- Phone -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Số điện thoại</span>
+                                        <span class="md-error-message" id="error-Phone"></span>
+                                    </label>
+                                    <input type="tel" id="Phone" name="Phone" value="@Model?.Phone" class="md-input" />
+                                </div>
+                            </div>
+                            <!-- Province -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">Tỉnh / Thành phố</label>
+                                    <select name="Province" class="md-select">
+                                        <option value="">-- Chọn tỉnh/thành --</option>
+                                        @foreach (var province in await SV22T1020161.BusinessLayers.DictionaryDataService.ListProvincesAsync())
+                                        {
+                                            <option value="@province.ProvinceName" selected="@(province.ProvinceName == Model?.Province)">
+                                                @province.ProvinceName
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Address -->
+                        <div>
+                            <div class="md-form-group mb-0">
+                                <label class="md-label">Địa chỉ cụ thể</label>
+                                <textarea name="Address" rows="2" class="md-input" style="resize:none;">@Model?.Address</textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Change Password Section -->
+            <section id="password" class="md-card">
+                <div class="md-card-header">
+                    <div class="md-card-icon" style="background:var(--md-secondary-container);color:var(--md-secondary);">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:1rem;font-weight:700;margin:0;">Đổi mật khẩu</h3>
+                        <p class="text-muted-md mb-0" style="font-size:0.8125rem;">Nên sử dụng mật khẩu mạnh để bảo vệ tài khoản.</p>
+                    </div>
+                </div>
+                <div class="md-card-body">
+                    <form id="changePasswordForm" action="~/Account/ChangePassword" method="post" class="d-flex flex-column gap-4" style="max-width:480px;">
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Mật khẩu hiện tại</span>
+                                <span class="md-error-message" id="error-oldPassword">
+                                    @if (TempData["ErrorMessage"]?.ToString() == "Mật khẩu cũ không chính xác.") { @TempData["ErrorMessage"] }
+                                </span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-lock input-icon"></i>
+                                <input type="password" id="oldPassword" name="oldPassword" placeholder="Nhập mật khẩu hiện tại" required class="md-input @(TempData["ErrorMessage"]?.ToString() == "Mật khẩu cũ không chính xác." ? "is-invalid" : "")" style="padding-right: 44px;" />
+                                <button type="button" class="password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Mật khẩu mới</span>
+                                <span class="md-error-message" id="error-newPassword">
+                                    @if (TempData["ErrorMessage"]?.ToString() == "Mật khẩu mới phải có ít nhất 6 ký tự.") { @TempData["ErrorMessage"] }
+                                </span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-key input-icon"></i>
+                                <input type="password" id="newPassword" name="newPassword" placeholder="Tối thiểu 6 ký tự" required minlength="6" class="md-input @(TempData["ErrorMessage"]?.ToString() == "Mật khẩu mới phải có ít nhất 6 ký tự." ? "is-invalid" : "")" style="padding-right: 44px;" />
+                                <button type="button" class="password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Xác nhận mật khẩu mới</span>
+                                <span class="md-error-message" id="error-confirmPassword">
+                                    @if (TempData["ErrorMessage"]?.ToString() == "Mật khẩu xác nhận không khớp.") { @TempData["ErrorMessage"] }
+                                </span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-shield-check input-icon"></i>
+                                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới" required class="md-input @(TempData["ErrorMessage"]?.ToString() == "Mật khẩu xác nhận không khớp." ? "is-invalid" : "")" style="padding-right: 44px;" />
+                                <button type="button" class="password-toggle" onclick="togglePassword(this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="md-btn md-btn-primary">
+                                <i class="bi bi-key"></i> Cập nhật mật khẩu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.md-profile-nav .nav-item[href^="#"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                var target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        function togglePassword(btn) {
+            const input = btn.parentElement.querySelector('input');
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
+            }
+        }
+
+        const cpForm = document.getElementById('changePasswordForm');
+        const pfForm = document.getElementById('profileForm');
+
+        function showError(formId, id, msg) {
+            const errSpan = document.getElementById('error-' + id);
+            const input = document.getElementById(id);
+            if (errSpan) errSpan.textContent = msg;
+            if (input) input.classList.add('is-invalid');
+        }
+        function clearErrors(formId, fields) {
+            fields.forEach(id => {
+                const errSpan = document.getElementById('error-' + id);
+                const input = document.getElementById(id);
+                if (errSpan) errSpan.textContent = '';
+                if (input) input.classList.remove('is-invalid');
+            });
+        }
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-container';
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+            const alertClass = type === 'success' ? 'md-alert-success' : 'md-alert-error';
+            toast.innerHTML = `<div class="md-alert ${alertClass}" style="position:fixed;bottom:24px;right:24px;z-index:9999;min-width:280px;animation:fadeInUp 0.3s ease"><i class="bi ${icon}"></i><div>${msg}</div></div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        if (pfForm) {
+            pfForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const fields = ['CustomerName', 'Phone'];
+                clearErrors('profileForm', fields);
+                const data = new FormData(pfForm);
+                const name = data.get('CustomerName');
+                const phone = data.get('Phone');
+                
+                if (!name) {
+                    showError('profileForm', 'CustomerName', 'Họ tên không được để trống.');
+                    return;
+                }
+                // Regex hỗ trợ Tiếng Việt đầy đủ và dấu cách
+                const nameRegex = /^[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÂÊÔƠƯưăâêôơưẠ-ỹ ]+$/;
+                if (!nameRegex.test(name)) {
+                    showError('profileForm', 'CustomerName', 'Họ tên chỉ được chứa chữ cái và khoảng trắng.');
+                    return;
+                }
+                if (name.trim().length < 2) {
+                    showError('profileForm', 'CustomerName', 'Họ tên phải từ 2 ký tự.');
+                    return;
+                }
+
+                if (phone) {
+                    const phoneRegex = /^[0-9]{10,11}$/;
+                    if (!phoneRegex.test(phone)) {
+                        showError('profileForm', 'Phone', 'Số điện thoại phải từ 10-11 chữ số.');
+                        return;
+                    }
+                }
+
+                fetch(pfForm.action, {
+                    method: 'POST',
+                    body: new URLSearchParams(data)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        showToast(res.message);
+                    } else {
+                        if (res.field) showError('profileForm', res.field, res.message);
+                        else showToast(res.message, 'error');
+                    }
+                })
+                .catch(() => showToast('Lỗi kết nối server.', 'error'));
+            });
+        }
+
+        if (cpForm) {
+            cpForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const fields = ['oldPassword', 'newPassword', 'confirmPassword'];
+                clearErrors('changePasswordForm', fields);
+
+                const data = new FormData(cpForm);
+                const oldPass = data.get('oldPassword');
+                const newPass = data.get('newPassword');
+                const confirmPass = data.get('confirmPassword');
+
+                let hasError = false;
+                if (!oldPass) { showError('changePasswordForm', 'oldPassword', 'Vui lòng nhập mật khẩu cũ.'); hasError = true; }
+                if (newPass.length < 6) { showError('changePasswordForm', 'newPassword', 'Mật khẩu mới phải từ 6 ký tự.'); hasError = true; }
+                else if (newPass !== confirmPass) { showError('changePasswordForm', 'confirmPassword', 'Mật khẩu xác nhận không khớp.'); hasError = true; }
+
+                if (hasError) return;
+
+                fetch(cpForm.action, {
+                    method: 'POST',
+                    body: new URLSearchParams(data)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        showToast(res.message);
+                        cpForm.reset();
+                    } else {
+                        if (res.field) showError('changePasswordForm', res.field, res.message);
+                        else showToast(res.message, 'error');
+                    }
+                })
+                .catch(() => showToast('Lỗi kết nối server.', 'error'));
+            }, true);
+        }
+    </script>
+    <style>
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--md-outline);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+        .password-toggle:hover {
+            color: var(--md-primary);
+        }
+        .md-input-wrap .input-icon {
+            left: 14px;
+            z-index: 2;
+        }
+        .md-input-wrap .md-input {
+            padding-left: 44px;
+        }
+    </style>
+}

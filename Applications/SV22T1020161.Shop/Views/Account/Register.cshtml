@@ -1,0 +1,255 @@
+@model SV22T1020161.Models.Partner.Customer
+@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+    Layout = null;
+    var returnUrl = ViewBag.ReturnUrl ?? Context.Request.Query["returnUrl"].ToString();
+}
+
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SV22T1020161.Shop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/material-dashboard.css" />
+</head>
+<body style="background-color:var(--md-surface-container-low);min-height:100vh;">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="md-auth-card mx-auto" style="max-width:760px;">
+                    <!-- Brand -->
+                    <div class="text-center mb-5">
+                        <a href="/" class="brand-logo justify-content-center">
+                            SV22T1020161<span style="color:var(--md-primary);">.</span>Shop
+                        </a>
+                        <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:6px;">Tạo tài khoản mới</h1>
+                        <p class="text-muted-md" style="font-size:0.875rem;">Chào mừng bạn đến với SV22T1020161. Vui lòng điền thông tin để đăng ký.</p>
+                    </div>
+
+                    <!-- Validation Summary -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="md-alert md-alert-error mb-4">
+                            <i class="bi bi-exclamation-triangle-fill" style="font-size:1.125rem;"></i>
+                            <div>
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <p style="margin:0;font-size:0.875rem;font-weight:500;">@error.ErrorMessage</p>
+                                }
+                            </div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form id="registerForm" action="~/Account/Register" method="post" class="d-flex flex-column gap-4">
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+                        <!-- Name -->
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Họ và tên <span style="color:var(--md-error);">*</span></span>
+                                <span class="md-error-message" id="error-CustomerName">
+                                    @if (ViewData.ModelState["CustomerName"]?.Errors.Any() == true)
+                                    {
+                                        @ViewData.ModelState["CustomerName"]!.Errors[0].ErrorMessage
+                                    }
+                                </span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-person input-icon"></i>
+                                <input type="text" id="CustomerName" name="CustomerName" value="@Model?.CustomerName"
+                                       placeholder="Nhập họ tên đầy đủ" class="md-input @(ViewData.ModelState["CustomerName"]?.Errors.Any() == true ? "is-invalid" : "")" />
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Email <span style="color:var(--md-error);">*</span></span>
+                                        <span class="md-error-message" id="error-Email">
+                                            @if (ViewData.ModelState["Email"]?.Errors.Any() == true)
+                                            {
+                                                @ViewData.ModelState["Email"]!.Errors[0].ErrorMessage
+                                            }
+                                        </span>
+                                    </label>
+                                    <div class="md-input-wrap">
+                                        <i class="bi bi-envelope input-icon"></i>
+                                        <input type="email" id="Email" name="Email" value="@Model?.Email"
+                                               placeholder="example@gmail.com" class="md-input @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "is-invalid" : "")" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Phone -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Số điện thoại <span style="color:var(--md-error);">*</span></span>
+                                        <span class="md-error-message" id="error-Phone">
+                                            @if (ViewData.ModelState["Phone"]?.Errors.Any() == true)
+                                            {
+                                                @ViewData.ModelState["Phone"]!.Errors[0].ErrorMessage
+                                            }
+                                        </span>
+                                    </label>
+                                    <div class="md-input-wrap">
+                                        <i class="bi bi-phone input-icon"></i>
+                                        <input type="tel" id="Phone" name="Phone" value="@Model?.Phone"
+                                               placeholder="0xxx xxx xxx" class="md-input @(ViewData.ModelState["Phone"]?.Errors.Any() == true ? "is-invalid" : "")" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Địa chỉ <span style="color:var(--md-error);">*</span></span>
+                                <span class="md-error-message" id="error-Address"></span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-geo-alt input-icon"></i>
+                                <input type="text" id="Address" name="Address" value="@Model?.Address"
+                                       placeholder="Địa chỉ thường trú" class="md-input" />
+                            </div>
+                        </div>
+
+                        <!-- Province -->
+                        <div class="md-form-group mb-0">
+                            <label class="md-label">
+                                <span>Tỉnh / Thành phố <span style="color:var(--md-error);">*</span></span>
+                                <span class="md-error-message" id="error-Province"></span>
+                            </label>
+                            <div class="md-input-wrap">
+                                <i class="bi bi-map input-icon"></i>
+                                <select id="Province" name="Province" class="md-input" style="padding-left:44px;">
+                                    <option value="">-- Chọn tỉnh/thành --</option>
+                                    @foreach (var province in await SV22T1020161.BusinessLayers.DictionaryDataService.ListProvincesAsync())
+                                    {
+                                        <option value="@province.ProvinceName" selected="@(province.ProvinceName == Model?.Province)">
+                                            @province.ProvinceName
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Password hint -->
+                        <div class="md-alert md-alert-warning" style="border-left-color:#FF9800; padding: 12px;">
+                            <div style="font-size:0.75rem;">
+                                <i class="bi bi-info-circle-fill me-2"></i> Mật khẩu phải có ít nhất <strong>6 ký tự</strong>.
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Mật khẩu <span style="color:var(--md-error);">*</span></span>
+                                        <span class="md-error-message" id="error-Password">
+                                            @if (ViewData.ModelState["Password"]?.Errors.Any() == true)
+                                            {
+                                                @ViewData.ModelState["Password"]!.Errors[0].ErrorMessage
+                                            }
+                                        </span>
+                                    </label>
+                                    <div class="md-input-wrap">
+                                        <i class="bi bi-lock input-icon"></i>
+                                        <input type="password" id="Password" name="Password" placeholder="Tối thiểu 6 ký tự" class="md-input @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "is-invalid" : "")" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Confirm Password -->
+                            <div class="col-md-6">
+                                <div class="md-form-group mb-0">
+                                    <label class="md-label">
+                                        <span>Xác nhận mật khẩu <span style="color:var(--md-error);">*</span></span>
+                                        <span class="md-error-message" id="error-confirmPassword"></span>
+                                    </label>
+                                    <div class="md-input-wrap">
+                                        <i class="bi bi-shield-check input-icon"></i>
+                                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" class="md-input" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="md-btn md-btn-primary" style="padding:12px;font-size:1rem;font-weight:700;box-shadow:0 4px 12px rgba(103,80,164,.35);">
+                            <i class="bi bi-person-plus"></i>
+                            Tạo tài khoản
+                        </button>
+
+                        <div class="text-center">
+                            <p class="text-muted-md mb-0" style="font-size:0.875rem;">
+                                Đã có tài khoản? <a href="~/Account/Login?returnUrl=@returnUrl" style="font-weight:600;">Đăng nhập ngay</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            let hasError = false;
+            const showError = (id, msg) => {
+                const errSpan = document.getElementById('error-' + id);
+                const input = document.getElementById(id);
+                if (errSpan) errSpan.textContent = msg;
+                if (input) input.classList.add('is-invalid');
+                hasError = true;
+            };
+            const clearError = (id) => {
+                const errSpan = document.getElementById('error-' + id);
+                const input = document.getElementById(id);
+                if (errSpan) errSpan.textContent = '';
+                if (input) input.classList.remove('is-invalid');
+            };
+
+            // Clear all
+            ['CustomerName', 'Email', 'Phone', 'Address', 'Province', 'Password', 'confirmPassword'].forEach(clearError);
+
+            const name = document.getElementById('CustomerName').value.trim();
+            const email = document.getElementById('Email').value.trim();
+            const phone = document.getElementById('Phone').value.trim();
+            const address = document.getElementById('Address').value.trim();
+            const province = document.getElementById('Province').value;
+            const pass = document.getElementById('Password').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (!name) showError('CustomerName', 'Họ tên không được để trống.');
+            else if (name.length < 2) showError('CustomerName', 'Họ tên ít nhất 2 ký tự.');
+
+            if (!email) showError('Email', 'Vui lòng nhập Email.');
+            else if (!email.includes('@@') || !email.includes('.')) showError('Email', 'Email không hợp lệ.');
+
+            if (!phone) showError('Phone', 'Số điện thoại không được để trống.');
+            else if (!/^\d{10,11}$/.test(phone.replace(/\D/g, ''))) showError('Phone', 'Số điện thoại phải từ 10-11 chữ số.');
+
+            if (!address) showError('Address', 'Địa chỉ không được để trống.');
+
+            if (!province) showError('Province', 'Vui lòng chọn tỉnh/thành.');
+
+            if (pass.length < 6) showError('Password', 'Mật khẩu phải từ 6 ký tự.');
+            
+            if (pass !== confirm) showError('confirmPassword', 'Mật khẩu xác nhận không khớp.');
+
+            if (hasError) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

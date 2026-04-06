@@ -1,0 +1,331 @@
+@using SV22T1020161.Models.Catalog
+@using SV22T1020161.Models.Common
+@{
+    var categories = ViewBag.Categories as PagedResult<Category>;
+    var productResult = ViewBag.ProductResult as PagedResult<Product>;
+    int currentCategoryID = ViewBag.CurrentCategoryID ?? 0;
+    string currentSearchValue = ViewBag.CurrentSearchValue ?? "";
+    int totalProducts = productResult?.RowCount ?? 0;
+}
+
+<!-- Hero Section (Carousel) -->
+<div id="heroCarousel" class="carousel slide md-hero-carousel" data-bs-ride="carousel" data-bs-interval="3000">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+    <div class="carousel-inner">
+        <!-- Slide 1 -->
+        <div class="carousel-item active">
+            <section class="md-hero md-hero-1">
+                <div class="row align-items-center w-100">
+                    <div class="col-lg-6">
+                        <h1>
+                            Mua sắm thông minh,<br>
+                            <span class="highlight">sống hiện đại</span>
+                        </h1>
+                        <p>Khám phá hàng ngàn sản phẩm chất lượng với giá tốt nhất. Đặt hàng dễ dàng, giao hàng nhanh chóng.</p>
+                        <span class="md-hero-badge">
+                            <i class="bi bi-truck"></i>
+                            Miễn phí vận chuyển cho đơn từ 500K
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Slide 2 -->
+        <div class="carousel-item">
+            <section class="md-hero md-hero-2">
+                <div class="row align-items-center w-100">
+                    <div class="col-lg-6">
+                        <h1>
+                            Siêu ưu đãi hàng tuần,<br>
+                            <span class="highlight">lên đến 50%</span>
+                        </h1>
+                        <p>Đừng bỏ lỡ cơ hội sở hữu những món đồ yêu thích với mức giá không thể rẻ hơn. Deal sốc mỗi ngày.</p>
+                        <span class="md-hero-badge" style="background-color: var(--md-error);">
+                            <i class="bi bi-lightning-fill"></i>
+                            Flash Sale đang diễn ra
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <!-- Slide 3 -->
+        <div class="carousel-item">
+            <section class="md-hero md-hero-3">
+                <div class="row align-items-center w-100">
+                    <div class="col-lg-6">
+                        <h1>
+                            Bộ sưu tập mới,<br>
+                            <span class="highlight">phong cách trẻ trung</span>
+                        </h1>
+                        <p>Cập nhật những xu hướng mới nhất từ thế giới công nghệ và thời trang. Nâng tầm phong cách của bạn.</p>
+                        <span class="md-hero-badge" style="background: rgba(255,255,255,0.25);">
+                            <i class="bi bi-star-fill"></i>
+                            Mới nhất trong tuần
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <!-- Sidebar Filter -->
+    <div class="col-lg-3">
+        <div class="md-filter-card" style="border: none;">
+            <div class="md-filter-title">
+                <span class="md-filter-title-left">
+                    <i class="bi bi-sliders" style="color: var(--md-primary);"></i>
+                    Bộ lọc tìm kiếm
+                </span>
+            </div>
+
+            <form id="formSearch" method="get" class="d-flex flex-column gap-3">
+                <input type="hidden" id="searchValueState" name="SearchValue" value="@currentSearchValue" />
+
+                <!-- Category -->
+                <div class="md-form-group mb-0">
+                    <label class="md-label">Danh mục</label>
+                    <select id="searchCategoryID" name="CategoryID" class="md-select">
+                        @if (currentCategoryID == 0)
+                        {
+                            <option value="0" selected>Tất cả danh mục</option>
+                        }
+                        else
+                        {
+                            <option value="0">Tất cả danh mục</option>
+                        }
+                        @foreach (var c in categories?.DataItems ?? new List<Category>())
+                        {
+                            if (c.CategoryID == currentCategoryID)
+                            {
+                                <option value="@c.CategoryID" selected>@c.CategoryName</option>
+                            }
+                            else
+                            {
+                                <option value="@c.CategoryID">@c.CategoryName</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Price Range Preset -->
+                <div class="md-form-group mb-0">
+                    <label class="md-label">Khoảng giá</label>
+                    <select id="pricePreset" class="md-select" onchange="applyPricePreset()">
+                        <option value="">-- Chọn khoảng giá --</option>
+                        <option value="0,100000">Dưới 100.000đ</option>
+                        <option value="100000,200000">100.000đ - 200.000đ</option>
+                        <option value="200000,500000">200.000đ - 500.000đ</option>
+                        <option value="500000,1000000">500.000đ - 1.000.000đ</option>
+                        <option value="1000000,">Trên 1.000.000đ</option>
+                    </select>
+                </div>
+
+                <!-- Price Range Custom -->
+                <div class="md-form-group mb-0">
+                    <label class="md-label">Hoặc tự nhập (VNĐ)</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" name="MinPrice" id="minPriceInput"
+                                   value="@(ViewBag.CurrentMinPrice > 0 ? ViewBag.CurrentMinPrice : null)"
+                                   placeholder="Từ" class="md-input" min="0">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" name="MaxPrice" id="maxPriceInput"
+                                   value="@(ViewBag.CurrentMaxPrice > 0 ? ViewBag.CurrentMaxPrice : null)"
+                                   placeholder="Đến" class="md-input" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" name="Page" value="1" />
+
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" onclick="doSearch(1)" class="md-btn md-btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Áp dụng bộ lọc
+                    </button>
+                    <button type="button" onclick="resetFilter()" class="md-btn md-btn-outlined w-100">
+                        Xóa tất cả bộ lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product List -->
+    <div class="col-lg-9">
+        <!-- Dynamic Search Status -->
+        <div class="md-search-status mb-4" id="dynamicSearchStatus">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="md-search-info">
+                    <span class="text-muted-md" id="searchStatusText">Kết quả tìm kiếm</span>
+                    <span class="mx-2 text-muted-md opacity-25">|</span>
+                    <span class="md-search-count">Tìm thấy <strong id="productCountDisplayStatus">@totalProducts.ToString("N0", new System.Globalization.CultureInfo("vi-VN"))</strong> sản phẩm</span>
+                </div>
+                <div class="md-search-sort">
+                    <span class="text-muted-md">Hiển thị <strong>@productResult?.DataItems?.Count()</strong> / trang</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="searchResult">
+            @await Html.PartialAsync("_ProductGrid", productResult ?? new PagedResult<Product>())
+        </div>
+    </div>
+</div>
+
+<!-- Trust Banner -->
+<section class="md-trust-banner">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="md-trust-item">
+                <div class="md-trust-icon md-trust-icon-purple">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1" style="font-weight: 600; font-size: 0.9375rem;">Miễn phí vận chuyển</h6>
+                    <p class="mb-0 text-muted-md" style="font-size: 0.8125rem;">Cho đơn hàng từ 500.000đ</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="md-trust-item">
+                <div class="md-trust-icon md-trust-icon-green">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1" style="font-weight: 600; font-size: 0.9375rem;">Thanh toán an toàn</h6>
+                    <p class="mb-0 text-muted-md" style="font-size: 0.8125rem;">100% thanh toán khi nhận hàng</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="md-trust-item">
+                <div class="md-trust-icon md-trust-icon-blue">
+                    <i class="bi bi-headset"></i>
+                </div>
+                <div>
+                    <h6 class="mb-1" style="font-weight: 600; font-size: 0.9375rem;">Hỗ trợ 24/7</h6>
+                    <p class="mb-0 text-muted-md" style="font-size: 0.8125rem;">Luôn sẵn sàng hỗ trợ bạn</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function syncProductCountFromResult() {
+            var $meta = $("#searchResult .js-paged-meta");
+            if (!$meta.length) return;
+            var n = parseInt($meta.attr("data-row-count"), 10);
+            if (isNaN(n)) n = 0;
+            $("#productCountDisplayStatus").text(n.toLocaleString("vi-VN"));
+            
+            var catName = $("#searchCategoryID option:selected").text().trim();
+            var catVal = $("#searchCategoryID").val();
+            var searchVal = $("#searchValueState").val() || "";
+
+            var combined = "";
+            var searchPart = searchVal ? `từ khóa "${searchVal}"` : "";
+            var categoryPart = (catVal && catVal !== "0") ? `trong danh mục "${catName}"` : "";
+
+            if (searchPart && categoryPart) combined = `${searchPart} ${categoryPart}`;
+            else if (searchPart) combined = searchPart;
+            else if (categoryPart) combined = categoryPart;
+
+            var finalMsg = combined ? `Kết quả ${combined}` : "Tất cả sản phẩm";
+            $("#searchStatusText").text(finalMsg);
+            
+            $meta.remove();
+        }
+
+        function applyPricePreset() {
+            var val = $("#pricePreset").val();
+            if (!val) {
+                $("#minPriceInput").val("");
+                $("#maxPriceInput").val("");
+                return;
+            }
+            var parts = val.split(",");
+            var min = parts[0] || "";
+            var max = parts[1] || "";
+            $("#minPriceInput").val(min);
+            $("#maxPriceInput").val(max);
+        }
+
+        function doSearch(page) {
+            applyPricePreset();
+            $("#formSearch input[name='Page']").val(page);
+            var params = {
+                CategoryID: $("#searchCategoryID").val(),
+                MinPrice: $("#minPriceInput").val(),
+                MaxPrice: $("#maxPriceInput").val(),
+                Page: page,
+                SearchValue: $("#searchValueState").val() || ""
+            };
+
+            $.ajax({
+                url: "/Home/Search",
+                type: "GET",
+                data: params,
+                success: function (data) {
+                    $("#searchResult").html(data);
+                    syncProductCountFromResult();
+                },
+                error: function () {
+                    $("#searchResult").html('<div class="md-empty-state"><div class="md-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3 class="text-xl font-bold">Có lỗi xảy ra</h3><p class="text-muted-md">Vui lòng thử lại.</p></div>');
+                }
+            });
+        }
+
+        function resetFilter() {
+            $("select[name='CategoryID']").val("0");
+            $("#pricePreset").val("");
+            $("#minPriceInput").val("");
+            $("#maxPriceInput").val("");
+            $("#searchValueState").val("");
+            doSearch(1);
+        }
+
+        $(document).ready(function () {
+            selectPricePresetFromInputs();
+            syncProductCountFromResult();
+
+            $("#minPriceInput, #maxPriceInput").on("input", function () {
+                $("#pricePreset").val("");
+            });
+        });
+
+        function selectPricePresetFromInputs() {
+            var min = parseInt($("#minPriceInput").val()) || 0;
+            var max = parseInt($("#maxPriceInput").val()) || 0;
+            if (min === 0 && max === 0) return;
+            $("#pricePreset option").each(function () {
+                var val = $(this).val();
+                if (!val) return;
+                var parts = val.split(",");
+                var pMin = parseInt(parts[0]) || 0;
+                var pMax = parseInt(parts[1]) || 0;
+                if (pMin === min && pMax === max) {
+                    $("#pricePreset").val(val);
+                }
+            });
+        }
+    </script>
+}

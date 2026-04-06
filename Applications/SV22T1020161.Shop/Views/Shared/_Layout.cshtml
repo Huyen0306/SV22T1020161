@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SV22T1020161.Shop</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/material-dashboard.css?v=2" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- Material Navbar -->
+    <nav class="md-navbar navbar navbar-expand-lg">
+        <div class="container">
+            <!-- Brand -->
+            <a href="/" class="navbar-brand">
+                <span>SV22T1020161<span style="color: var(--md-primary);">.</span>Shop</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarMain" aria-controls="navbarMain"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <!-- Wrapper for 3-part layout on desktop -->
+                <div class="d-flex flex-column flex-lg-row w-100 align-items-lg-center">
+                    
+                    <!-- Part 1: Left - Links (Takes up remaining space on left) -->
+                    <div class="navbar-part-left flex-lg-grow-1">
+                        <ul class="navbar-nav mb-2 mb-lg-0 align-items-lg-center">
+                            <li class="nav-item">
+                                <a href="/" class="nav-link @(Context.Request.Path.Value == "/" ? "active" : "")">Trang chủ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/Product" class="nav-link @(Context.Request.Path.Value?.StartsWith("/Product") == true ? "active" : "")">Cửa hàng</a>
+                            </li>
+                            @if (User?.Identity?.IsAuthenticated == true)
+                            {
+                                <li class="nav-item">
+                                    <a href="/Order/History" class="nav-link @(Context.Request.Path.Value?.StartsWith("/Order") == true ? "active" : "")">Đơn hàng</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- Part 2: Center - Search (Fixed width, centered in flex) -->
+                    <div class="navbar-part-center d-none d-lg-block px-3">
+                        <form action="/Product" method="get" style="width: 440px;">
+                            <div class="search-input-group d-flex align-items-center gap-0">
+                                <div class="search-input-wrap flex-grow-1">
+                                    <i class="bi bi-search search-icon"></i>
+                                    <input type="search" name="SearchValue" class="search-input-md" placeholder="Tìm kiếm sản phẩm..." aria-label="Tìm kiếm" value="@Context.Request.Query["SearchValue"]">
+                                </div>
+                                <button type="submit" class="search-btn-md">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Part 3: Right - Actions (Takes up remaining space on right, align right) -->
+                    <div class="navbar-part-right flex-lg-grow-1 d-flex justify-content-lg-end align-items-center gap-2">
+                        <!-- Cart -->
+                        <a href="/Cart" class="cart-btn" title="Giỏ hàng">
+                            <span class="cart-btn-icon-wrap">
+                                <i class="bi bi-cart3" style="font-size: 1.25rem;" aria-hidden="true"></i>
+                                <span id="cart-badge" class="cart-badge" style="display: none;">0</span>
+                            </span>
+                            <span class="cart-btn-label d-none d-md-inline" style="white-space: nowrap;">Giỏ hàng</span>
+                        </a>
+
+                        <!-- User Menu -->
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="dropdown user-menu">
+                                <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="user-avatar">
+                                        @(User.FindFirst("DisplayName")?.Value?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <span class="d-none d-md-inline">@(User.FindFirst("DisplayName")?.Value)</span>
+                                    <i class="bi bi-chevron-down" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="/Account/Profile"><i class="bi bi-person"></i> Tài khoản</a></li>
+                                    <li><a class="dropdown-item" href="/Order/History"><i class="bi bi-clock-history"></i> Đơn hàng</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="/Account/Logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="/Account/Login" class="btn-auth-login">Đăng nhập</a>
+                                <a href="/Account/Register" class="btn-auth-register">Đăng ký</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="min-height: calc(100vh - 70px);">
+        <!-- Alert Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container mt-4">
+                <div class="md-alert md-alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill" style="font-size: 1.25rem;"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+
+        <div class="container py-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Material Footer -->
+    <footer class="md-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="md-footer-brand">
+                        SV22T1020161<span style="color: var(--md-primary);">.</span>Shop
+                    </div>
+                    <p class="text-muted-md" style="font-size: 0.875rem; max-width: 360px; line-height: 1.7;">
+                        Hệ thống bán hàng trực tuyến hiện đại. Cam kết cung cấp sản phẩm chất lượng cao
+                        và dịch vụ chăm sóc tận tâm cho khách hàng trên toàn quốc.
+                    </p>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h6 class="fw-bold mb-3" style="font-size: 0.875rem; color: var(--md-on-surface);">Liên kết</h6>
+                    <ul class="list-unstyled" style="font-size: 0.875rem;">
+                        <li class="mb-2"><a href="/Product" class="md-footer-link">Sản phẩm</a></li>
+                        <li class="mb-2"><a href="#" class="md-footer-link">Về chúng tôi</a></li>
+                        <li class="mb-2"><a href="#" class="md-footer-link">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h6 class="fw-bold mb-3" style="font-size: 0.875rem; color: var(--md-on-surface);">Hỗ trợ</h6>
+                    <ul class="list-unstyled" style="font-size: 0.875rem;">
+                        <li class="mb-2"><a href="#" class="md-footer-link">Chính sách bảo mật</a></li>
+                        <li class="mb-2"><a href="#" class="md-footer-link">Điều khoản dịch vụ</a></li>
+                        <li class="mb-2"><a href="#" class="md-footer-link">Hướng dẫn mua hàng</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="fw-bold mb-3" style="font-size: 0.875rem; color: var(--md-on-surface);">Liên hệ</h6>
+                    <div class="d-flex gap-3 mt-2">
+                        <a href="#" class="md-btn md-btn-icon" style="background: var(--md-surface-variant); color: var(--md-on-surface-variant);">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                        <a href="#" class="md-btn md-btn-icon" style="background: var(--md-surface-variant); color: var(--md-on-surface-variant);">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#" class="md-btn md-btn-icon" style="background: var(--md-surface-variant); color: var(--md-on-surface-variant);">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <hr class="md-divider mt-5 mb-4">
+            <div class="text-center" style="font-size: 0.8125rem; color: var(--md-on-surface-variant);">
+                &copy; @DateTime.Now.Year SV22T1020161.Shop. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal xác nhận (thay cho confirm) -->
+    <div class="modal fade" id="globalConfirmModal" tabindex="-1" aria-labelledby="globalConfirmTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--md-radius-lg); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="padding: 1.25rem 1.25rem 0;">
+                    <h5 class="modal-title fw-bold" id="globalConfirmTitle" style="font-size: 1.125rem;">Xác nhận</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body pt-2" style="padding: 0.75rem 1.25rem 1rem;">
+                    <p id="globalConfirmMessage" class="mb-0 text-muted-md" style="font-size: 0.9375rem; line-height: 1.6;"></p>
+                </div>
+                <div class="modal-footer border-0 gap-2" style="padding: 0 1.25rem 1.25rem;">
+                    <button type="button" class="md-btn md-btn-text" id="globalConfirmBtnCancel">Hủy</button>
+                    <button type="button" class="md-btn md-btn-primary" id="globalConfirmBtnOk">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thông báo (thay cho alert) -->
+    <div class="modal fade" id="globalAlertModal" tabindex="-1" aria-labelledby="globalAlertTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--md-radius-lg); overflow: hidden;">
+                <div class="modal-header border-0 pb-0" style="padding: 1.25rem 1.25rem 0;">
+                    <h5 class="modal-title fw-bold" id="globalAlertTitle" style="font-size: 1.125rem;">Thông báo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body pt-2" style="padding: 0.75rem 1.25rem 1rem;">
+                    <p id="globalAlertMessage" class="mb-0 text-muted-md" style="font-size: 0.9375rem; line-height: 1.6;"></p>
+                </div>
+                <div class="modal-footer border-0" style="padding: 0 1.25rem 1.25rem;">
+                    <button type="button" class="md-btn md-btn-primary w-100" id="globalAlertBtnOk">Đã hiểu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (jQuery cần cho Ajax tìm kiếm/lọc sản phẩm trên Home, Product, …) -->
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script src="~/lib/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <script>
+        /**
+         * Modal xác nhận — trả về Promise<boolean>
+         * options: { title, message, confirmText, cancelText }
+         */
+        function showConfirmModal(options) {
+            return new Promise(function (resolve) {
+                var modalEl = document.getElementById('globalConfirmModal');
+                var titleEl = document.getElementById('globalConfirmTitle');
+                var msgEl = document.getElementById('globalConfirmMessage');
+                var btnOk = document.getElementById('globalConfirmBtnOk');
+                var btnCancel = document.getElementById('globalConfirmBtnCancel');
+                titleEl.textContent = (options && options.title) ? options.title : 'Xác nhận';
+                msgEl.textContent = (options && options.message) ? options.message : '';
+                btnOk.textContent = (options && options.confirmText) ? options.confirmText : 'Đồng ý';
+                btnCancel.textContent = (options && options.cancelText) ? options.cancelText : 'Hủy';
+
+                var resolved = false;
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+                function cleanup() {
+                    modalEl.removeEventListener('hidden.bs.modal', onHidden);
+                    btnOk.removeEventListener('click', onOk);
+                    btnCancel.removeEventListener('click', onCancel);
+                }
+
+                function finish(val) {
+                    if (resolved) return;
+                    resolved = true;
+                    cleanup();
+                    modal.hide();
+                    resolve(val);
+                }
+
+                function onOk() { finish(true); }
+                function onCancel() { finish(false); }
+                function onHidden() {
+                    if (!resolved) finish(false);
+                }
+
+                btnOk.addEventListener('click', onOk);
+                btnCancel.addEventListener('click', onCancel);
+                modalEl.addEventListener('hidden.bs.modal', onHidden);
+
+                modal.show();
+            });
+        }
+
+        function showAlertModal(message, title) {
+            return new Promise(function (resolve) {
+                var modalEl = document.getElementById('globalAlertModal');
+                document.getElementById('globalAlertTitle').textContent = title || 'Thông báo';
+                document.getElementById('globalAlertMessage').textContent = message || '';
+                var btnOk = document.getElementById('globalAlertBtnOk');
+                var resolved = false;
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+                function cleanup() {
+                    btnOk.removeEventListener('click', onOk);
+                    modalEl.removeEventListener('hidden.bs.modal', onHidden);
+                }
+
+                function done() {
+                    if (resolved) return;
+                    resolved = true;
+                    cleanup();
+                    resolve();
+                }
+
+                function onOk() {
+                    modal.hide();
+                    done();
+                }
+
+                function onHidden() {
+                    if (!resolved) done();
+                }
+
+                btnOk.addEventListener('click', onOk);
+                modalEl.addEventListener('hidden.bs.modal', onHidden);
+                modal.show();
+            });
+        }
+
+        function updateBadge(count) {
+            var badge = document.getElementById('cart-badge');
+            if (!badge) return;
+            count = parseInt(count) || 0;
+            
+            // Chỉ lưu vào localStorage nếu đã đăng nhập và dùng key có ID người dùng
+            var auth = @(User?.Identity?.IsAuthenticated == true ? "true" : "false");
+            var userId = "@(User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "")";
+            
+            if (auth && userId) {
+                localStorage.setItem('cart_count_' + userId, count);
+            } else {
+                // Logout hoặc chưa login: xóa mọi cache cũ liên quan giỏ hàng
+                for (var key in localStorage) {
+                    if (key && key.indexOf('cart_count_') === 0) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                localStorage.removeItem('cart_count');
+            }
+
+            if (count > 0 && auth) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function addToCart(id, qty) {
+            if (qty === undefined) qty = 1;
+            fetch('/Cart/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + id + '&quantity=' + qty
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    updateBadge(data.itemCount);
+                    var btn = document.createElement('div');
+                    btn.className = 'toast-container';
+                    btn.innerHTML = '<div class="md-alert md-alert-success" style="position:fixed;bottom:24px;right:24px;z-index:9999;min-width:280px;animation:fadeInUp 0.3s ease"><i class="bi bi-check-circle-fill"></i><div>' + data.message + '</div></div>';
+                    document.body.appendChild(btn);
+                    setTimeout(function() { btn.remove(); }, 3000);
+                } else if (data.requireLogin) {
+                    showConfirmModal({
+                        title: 'Đăng nhập',
+                        message: 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Bạn có muốn chuyển đến trang đăng nhập không?',
+                        confirmText: 'Đăng nhập',
+                        cancelText: 'Để sau'
+                    }).then(function (ok) {
+                        if (ok) window.location.href = data.redirectUrl;
+                    });
+                } else {
+                    showAlertModal(data.message || 'Lỗi khi thêm vào giỏ hàng', 'Thông báo');
+                }
+            })
+            .catch(function() {
+                showAlertModal('Lỗi kết nối server. Vui lòng thử lại.', 'Lỗi');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var auth = @(User?.Identity?.IsAuthenticated == true ? "true" : "false");
+            var userId = "@(User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "")";
+
+            if (auth && userId) {
+                var savedCount = localStorage.getItem('cart_count_' + userId);
+                if (savedCount !== null) {
+                    updateBadge(savedCount);
+                }
+            } else {
+                updateBadge(0);
+            }
+
+            fetch('/Cart/GetCartCount')
+                .then(function(res) { return res.json(); })
+                .then(function(data) { updateBadge(data.count); });
+        });
+    </script>
+    <style>
+        @@keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
